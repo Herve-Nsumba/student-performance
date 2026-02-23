@@ -175,12 +175,12 @@ def main():
         X_all, y_all, test_size=0.2, random_state=42
     )
 
-    print(f"\nTraining Random Forest (n_estimators=800)...")
+    print(f"\nTraining Random Forest (n_estimators=150, max_depth=20)...")
     model = RandomForestRegressor(
-        n_estimators=800,
-        max_depth=None,
-        min_samples_split=2,
-        min_samples_leaf=1,
+        n_estimators=150,
+        max_depth=20,
+        min_samples_split=5,
+        min_samples_leaf=2,
         random_state=42,
         n_jobs=-1,
     )

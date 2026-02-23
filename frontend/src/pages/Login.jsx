@@ -20,7 +20,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
 
   // Dropdown options from backend
-  const [teachers, setTeachers] = useState([])    // string[]
+  const [teachers, setTeachers] = useState([])    // {username, course}[]
   const [students, setStudents] = useState([])    // {username, student_code, full_name}[]
 
   // Fetch dropdown options on mount
@@ -37,7 +37,7 @@ export default function Login() {
     if (r === 'admin') {
       setUsername('admin')
     } else if (r === 'teacher') {
-      setUsername(teachers[0] || '')
+      setUsername(teachers[0]?.username || '')
     } else if (r === 'student') {
       setUsername(students[0]?.username || '')
     }
@@ -115,7 +115,9 @@ export default function Login() {
                   className="mt-1 w-full px-3 py-2 rounded-xl border border-[var(--line)] bg-[var(--card)] text-sm text-[var(--ink)]"
                 >
                   {teachers.map((t) => (
-                    <option key={t} value={t}>{t}</option>
+                    <option key={t.username} value={t.username}>
+                      {t.username}{t.course ? ` — ${t.course}` : ''}
+                    </option>
                   ))}
                 </select>
               ) : (

@@ -43,27 +43,46 @@ class Command(BaseCommand):
             is_staff=True, is_superuser=True,
         )
 
-        # -- 2. Default teacher --------------------------------
-        teacher = self._ensure_user(
-            "teacher1", "TEACHER", "teacher1@school.local", pw,
-        )
+        # -- 2. Teachers + courses --------------------------------
+        teachers_courses = [
+            ("teacher1", "teacher1@school.local", "Big Data"),
+            ("teacher2", "teacher2@school.local", "Java Programming"),
+            ("teacher3", "teacher3@school.local", "Web Technologies"),
+        ]
 
-        # -- 3. Default course --------------------------------─
-        course, created = Course.objects.get_or_create(
-            name="General Performance",
-            defaults={"teacher": teacher},
-        )
-        if created:
-            self.stdout.write(self.style.SUCCESS(f"  Created course: {course.name}"))
-        else:
-            self.stdout.write(f"  Course '{course.name}' already exists -- OK.")
+        teacher = None   # reference to teacher1 (owns demo students)
+        course = None     # reference to teacher1's course
 
-        # -- 4. Default student (so you can always log in as one) --─
+        for uname, email, course_name in teachers_courses:
+            t = self._ensure_user(uname, "TEACHER", email, pw)
+            c, c_created = Course.objects.get_or_create(
+                name=course_name,
+                defaults={"teacher": t},
+            )
+            if not c_created and c.teacher_id != t.id:
+                c.teacher = t
+                c.save()
+            tag = "Created" if c_created else "OK"
+            self.stdout.write(self.style.SUCCESS(
+                f"  Course: {course_name} ({tag}) -> {uname}"
+            ))
+            if uname == "teacher1":
+                teacher = t
+                course = c
+
+        # Migrate old "General Performance" course if it exists
+        old_course = Course.objects.filter(name="General Performance").first()
+        if old_course and old_course.id != course.id:
+            old_course.student_profiles.update(course=course)
+            old_course.delete()
+            self.stdout.write("  Migrated 'General Performance' -> 'Big Data'")
+
+        # -- 3. Default student (so you can always log in as one) --
         if not Student.objects.exists():
             st = Student.objects.create(
                 student_code="student1",
                 full_name="Demo Student",
-                class_name="General Performance",
+                class_name="Big Data",
             )
             self.stdout.write(self.style.SUCCESS(
                 f"  Created placeholder Student: {st.student_code}"
@@ -157,7 +176,9 @@ class Command(BaseCommand):
         self.stdout.write(
             f"\nDemo credentials (password = {pw} for all):\n"
             f"  admin          / {pw}\n"
-            f"  teacher1       / {pw}\n"
+            f"  teacher1       / {pw}   (Big Data)\n"
+            f"  teacher2       / {pw}   (Java Programming)\n"
+            f"  teacher3       / {pw}   (Web Technologies)\n"
             f"  <student_code> / {pw}   (e.g. student1 or STD-001)\n"
         )
 

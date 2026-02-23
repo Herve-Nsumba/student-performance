@@ -101,7 +101,7 @@ class RegisterTeacherView(APIView):
 class LoginOptionsTeachersView(APIView):
     """
     GET /api/auth/login-options/teachers/
-    Returns list of teacher usernames for the login dropdown.
+    Returns list of teacher objects {username, course} for the login dropdown.
     """
     permission_classes = [AllowAny]
 
@@ -109,9 +109,15 @@ class LoginOptionsTeachersView(APIView):
         teachers = (
             User.objects.filter(role=User.Role.TEACHER)
             .order_by("username")
-            .values_list("username", flat=True)
         )
-        return Response(list(teachers))
+        result = []
+        for t in teachers:
+            course = t.courses.first()
+            result.append({
+                "username": t.username,
+                "course": course.name if course else "",
+            })
+        return Response(result)
 
 
 class LoginOptionsStudentsView(APIView):

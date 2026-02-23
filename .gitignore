@@ -33,6 +33,3 @@ local_settings.py
 node_modules/
 .next/
 dist/
-
-# Large ML model file (too big for GitHub - 572 MB)
-models/*.pkl
