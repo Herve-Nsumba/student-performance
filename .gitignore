@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+build/
+
+# Virtual environments
+.venv/
+venv/
+
+# Django
+*.sqlite3
+media/
+staticfiles/
+local_settings.py
+
+# Env files (keep .env.example)
+.env
+!.env.example
+
+# Logs
+*.log
+
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
+
+# Frontend
+node_modules/
+.next/
+dist/
+
+# Large ML model file (too big for GitHub - 572 MB)
+models/*.pkl

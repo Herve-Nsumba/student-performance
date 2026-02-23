@@ -1,0 +1,275 @@
+# Student Performance ML Early-Warning System
+
+## Architecture Review & Refactoring Plan (Updated Version)
+
+------------------------------------------------------------------------
+
+# 1️⃣ CURRENT STATE OF THE PROJECT
+
+## Overall Architecture
+
+Current stack:
+
+-   **Frontend:** React + Vite
+-   **Backend API:** Django + Django REST Framework
+-   **ML Service:** FastAPI (RandomForestRegressor .pkl)
+-   **Database:** PostgreSQL
+
+The system currently operates as a **student-level ML prediction
+prototype**.
+
+------------------------------------------------------------------------
+
+## Current Backend Models
+
+### Student
+
+-   id
+-   student_code
+-   full_name
+-   class_name (string only)
+-   created_at
+
+### StudentRecord (ML Inputs)
+
+-   student (FK)
+-   previous_scores
+-   attendance
+-   hours_studied
+-   tutoring_sessions
+-   recorded_at
+
+### PredictionResult (ML Outputs)
+
+-   student (FK)
+-   predicted_value
+-   risk_level
+-   created_at
+
+------------------------------------------------------------------------
+
+## Current API Endpoints
+
+### Students
+
+-   GET /api/students/
+-   POST /api/students/
+-   POST /api/students/{id}/predict/
+
+### Records
+
+-   GET /api/records/?student_id={id}
+-   POST /api/records/
+
+### Predictions
+
+-   GET /api/predictions/
+
+------------------------------------------------------------------------
+
+## Current Data Flow
+
+1.  Student created.
+2.  Teacher/Admin enters StudentRecord.
+3.  Django sends features to FastAPI.
+4.  FastAPI returns predicted_value.
+5.  Django stores PredictionResult.
+6.  Frontend visualizes results.
+
+⚠️ Limitations: - No course model - No role-based filtering - No backend
+analytics aggregation - Analytics mostly computed in frontend - No
+intervention module
+
+------------------------------------------------------------------------
+
+# 2️⃣ TARGET FINAL ARCHITECTURE
+
+The final system evolves into:
+
+> A Role-Based ML Early-Warning Academic Intelligence Platform
+
+Roles: - Admin - Teacher - Student
+
+------------------------------------------------------------------------
+
+## Required Core Entities
+
+### Custom User Model
+
+-   id
+-   username
+-   role (ADMIN / TEACHER / STUDENT)
+-   email
+-   password
+
+### Course
+
+-   id
+-   name
+-   teacher (FK → User)
+
+### StudentProfile
+
+-   user (FK)
+-   course (FK)
+
+### StudentRecord (unchanged conceptually)
+
+### PredictionResult (extended for aggregation)
+
+### Intervention (NEW)
+
+-   student
+-   teacher
+-   risk_level
+-   message
+-   created_at
+
+------------------------------------------------------------------------
+
+# 3️⃣ ANALYTICS & VISUALIZATION LAYER SPECIFICATION
+
+⚠️ IMPORTANT DISTINCTION:
+
+-   **Prediction = Raw ML Output**
+-   **Analytics = Aggregated interpretation of predictions**
+-   **Visualization = Graph representation of analytics**
+
+------------------------------------------------------------------------
+
+## A. Student-Level Visualization (Micro Analytics)
+
+Graphs required:
+
+1.  Line Chart
+    -   X-axis: Time
+    -   Y-axis: predicted_value
+    -   Source: PredictionResult filtered by student
+2.  Bar Chart
+    -   Latest ML input features
+    -   Source: Latest StudentRecord
+3.  Risk Badge
+    -   Source: Latest PredictionResult
+4.  Intervention Timeline
+    -   Source: Intervention table
+
+------------------------------------------------------------------------
+
+## B. Teacher-Level Visualization (Class Analytics)
+
+Graphs required:
+
+1.  Multi-line Chart
+    -   Each line = Student in teacher's course
+    -   X-axis = Time
+    -   Y-axis = predicted_value
+    -   Backend endpoint must filter by teacher's course
+2.  Class Average Trend (Dashed line)
+    -   Aggregated mean per period
+3.  Risk Distribution (Pie Chart)
+    -   Count of low / medium / high
+    -   Based on latest prediction per student
+4.  At-Risk Ranking Table
+    -   Sorted by predicted_value ascending
+
+------------------------------------------------------------------------
+
+## C. Admin-Level Visualization (System Analytics)
+
+Graphs required:
+
+1.  Multi-line Chart (All Students)
+
+    -   Each line = Student
+    -   Time-based prediction trend
+
+2.  System Average Line
+
+    -   Aggregated across all students
+
+3.  Global Risk Distribution (Pie Chart)
+
+4.  KPI Cards
+
+    -   Total Students
+    -   Total Records
+    -   Total Predictions
+
+5.  Class Comparison Bar Chart
+
+    -   Average predicted_value per class
+
+------------------------------------------------------------------------
+
+# 4️⃣ REQUIRED TECHNICAL CHANGES
+
+## Backend Changes
+
+### 1. Replace class_name with Course FK
+
+class_name (string) → course (ForeignKey)
+
+------------------------------------------------------------------------
+
+### 2. Implement Custom User + Role Enforcement
+
+Add: - Role-based filtering in ViewSets - Permission classes in DRF
+
+------------------------------------------------------------------------
+
+### 3. Move Analytics Aggregation to Backend
+
+New endpoints:
+
+Admin: - GET /api/admin/average-trend/ - GET
+/api/admin/risk-distribution/ - GET /api/admin/class-comparison/
+
+Teacher: - GET /api/teacher/class-trend/ - GET /api/teacher/at-risk/
+
+Student: - GET /api/student/my-trend/ - GET /api/student/my-risk/
+
+These endpoints perform: - Grouping by period (weekly/monthly) -
+Averaging predicted_value - Selecting latest prediction per student
+
+⚠️ Aggregation must be backend-side for scalability.
+
+------------------------------------------------------------------------
+
+### 4. Add Intervention Module
+
+Endpoints: - POST /api/interventions/ - GET
+/api/interventions/?student_id= - GET /api/interventions/my/
+
+------------------------------------------------------------------------
+
+### 5. Extend Prediction Logic
+
+-   Bulk prediction per class
+-   Scheduled prediction execution
+-   Historical prediction versioning
+
+------------------------------------------------------------------------
+
+# 5️⃣ FINAL DATA FLOW (COMPLETE SYSTEM)
+
+Admin → Creates Courses & Teachers\
+Teacher → Adds Students & Records\
+System → Runs ML Predictions\
+System → Classifies Risk\
+Backend → Aggregates Analytics\
+Frontend → Visualizes Graphs per Role\
+Teacher/Admin → Apply Intervention\
+Student → Views Performance & Guidance
+
+------------------------------------------------------------------------
+
+# FINAL VISION
+
+The refactored project becomes:
+
+A Role-Based ML Academic Intelligence Platform with: - Structured data
+layer - Dedicated ML service layer - Backend analytics engine -
+Visualization layer per role - Full early-warning intervention cycle
+
+------------------------------------------------------------------------
+

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Performance Intelligence</title>
+    <script>
+      // Sync dark mode from localStorage before first paint to avoid flash
+      (function(){
+        try {
+          if (localStorage.getItem('pi_theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
+  </head>
+  <body style="background:var(--bg);color:var(--ink);">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
